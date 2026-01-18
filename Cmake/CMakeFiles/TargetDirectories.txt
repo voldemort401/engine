@@ -1,0 +1,3 @@
+/home/Say_my_name/programs/chess/Cmake/CMakeFiles/run.dir
+/home/Say_my_name/programs/chess/Cmake/CMakeFiles/edit_cache.dir
+/home/Say_my_name/programs/chess/Cmake/CMakeFiles/rebuild_cache.dir
