@@ -1,9 +1,44 @@
 #include <cctype>
 #include <iostream>
 #include "board.hpp"
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <map>
+
+piece s2s(std::string square)
+{
+  if (square.length() != 2){
+    return ENGINE_INVALID_SQUARE;
+  }
+  
+  std::map<char, int> files;
+  files = {{'a', 1}, 
+         {'b', 2},
+         {'c', 3},
+         {'d', 4},
+         {'e', 5},
+         {'f', 6},
+         {'g', 7},
+         {'h', 8}}; 
+  
+  char file = square[0];
+  int rank = square[1];
+  
+  if (rank > 8)
+  {
+    return ENGINE_INVALID_SQUARE;
+  }
+
+  if (files[file] == 0)
+  {
+    return ENGINE_INVALID_SQUARE;
+  }
+  
+  piece sq = (unsigned long long)1 << files[file] * rank;
+  
+  return sq;
+}
 
 const int Setpos(std::string fen){
   if (fen.length() == 0){
@@ -61,6 +96,98 @@ const int Setpos(std::string fen){
   std::map<std::string, int> pieces;
   pieces = {{"r", 1},{"n", 2},{"b", 3},{"q", 4},{"k", 5},{"p", 6},
     {"R", 7},{"N", 8},{"B", 9},{"Q", 10},{"K", 11},{"P", 12}};
+
+
+  // half move and full move clock
+  std::stringstream extra_bit_stream(extra_bits);
+  // we are using this var temp because it jst makes it easier to read for me 
+  int temp, itr{1};
+  for (std::string info; std::getline(extra_bit_stream, info, ' ');)
+  {
+    if (itr > 5)
+    {
+      return ENGINE_FEN_ERR;
+    }
+    // temp throws a std::invalid_argument if the provided string cant be converted to a number
+    try{
+      temp = std::stoi(info);
+    }
+    catch (std::invalid_argument){
+      temp = -1; 
+      if (info != "w" || info != "b")
+      {
+        // castling rights
+        if (itr == 2)
+        {
+          
+          for (int i = 0; i<= info.length();i++)
+          {
+            cpiece = info[i];
+            switch (pieces[cpiece])
+            {
+              case 5:
+                blackKingSideCastle = true;
+                break;
+              case 11:
+                whiteKingSideCastle = true;
+                break; 
+
+              case 4:
+                blackQueenSideCastle = true;
+                break;
+
+              case 10:
+                whiteQueenSideCastle = true;
+                break;
+
+              default:
+                return ENGINE_FEN_ERR;
+                break;
+            }
+          } 
+        }
+
+        //enpassant square 
+        else if (itr == 3)
+        {
+          enPassantSquare = s2s(info);
+          if (enPassantSquare == ENGINE_INVALID_SQUARE)
+          {
+            return ENGINE_FEN_ERR;
+          }
+        };
+
+      }
+    }; 
+
+    /* 
+       at the end of a fen the fen always has a structure like 
+       "w KQkq enpassant_squares fullmoveclock halfmoveclock" notice how fullmoveclock is 
+       after 3 pieces of information or in the 4th pos so if when the program is supposed to be 
+       pointing at fullmoveclock if we cant convert to a number then the fen would be invalid 
+    */
+    if (itr == 4 && temp == -1)
+    { 
+      return ENGINE_FEN_ERR;  
+    }
+    else if (itr == 4 && temp != -1)
+    {
+      fullmoveClock = temp;
+    }; 
+    
+
+    if (itr == 5 && temp == -1)
+    {
+      return ENGINE_FEN_ERR;
+    }
+    else if (itr == 5 && temp != -1)
+    {
+      halfmoveClock = temp;
+    };
+
+    itr+=1;
+  }
+
 
   for (int i = 0; i<=pieces_pos.length(); i++){
     cpiece = pieces_pos[i];
