@@ -114,7 +114,7 @@ const int Setpos(std::string fen){
     }
     catch (std::invalid_argument){
       temp = -1; 
-      if (info != "w" || info != "b")
+      if (info != "w" && info != "b")
       {
         // castling rights
         if (itr == 2)
