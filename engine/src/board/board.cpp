@@ -119,7 +119,7 @@ const int Setpos(std::string fen){
         // castling rights
         if (itr == 2)
         {
-          
+
           for (int i = 0; i<= info.length();i++)
           {
             cpiece = info[i];
@@ -144,10 +144,10 @@ const int Setpos(std::string fen){
                 return ENGINE_FEN_ERR;
                 break;
             }
-          } 
+          }
         }
 
-        //enpassant square 
+        //enpassant square
         else if (itr == 3)
         {
           enPassantSquare = s2s(info);
@@ -158,23 +158,23 @@ const int Setpos(std::string fen){
         };
 
       }
-    }; 
+    };
 
-    /* 
-       at the end of a fen the fen always has a structure like 
-       "w KQkq enpassant_squares fullmoveclock halfmoveclock" notice how fullmoveclock is 
-       after 3 pieces of information or in the 4th pos so if when the program is supposed to be 
-       pointing at fullmoveclock if we cant convert to a number then the fen would be invalid 
+    /*
+       at the end of a fen the fen always has a structure like
+       "w KQkq enpassant_squares fullmoveclock halfmoveclock" notice how fullmoveclock is
+       after 3 pieces of information or in the 4th pos so if when the program is supposed to be
+       pointing at fullmoveclock if we cant convert to a number then the fen would be invalid
     */
     if (itr == 4 && temp == -1)
-    { 
-      return ENGINE_FEN_ERR;  
+    {
+      return ENGINE_FEN_ERR;
     }
     else if (itr == 4 && temp != -1)
     {
       fullmoveClock = temp;
-    }; 
-    
+    };
+
 
     if (itr == 5 && temp == -1)
     {

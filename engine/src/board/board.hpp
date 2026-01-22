@@ -16,10 +16,10 @@
 #define WHITE 1
 
 // ERROR CODES
-#define ENGINE_OK 2;
-#define ENGINE_FEN_ERR 3;
-#define ENGINE_UNKWN_ERR 4;
-#define ENGINE_INVALID_SQUARE 5;
+#define ENGINE_OK 2
+#define ENGINE_FEN_ERR 3
+#define ENGINE_UNKWN_ERR 4
+#define ENGINE_INVALID_SQUARE 5
 
 typedef unsigned long long piece;
 
