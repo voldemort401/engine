@@ -1,5 +1,3 @@
-#include <cctype>
-#include <iostream>
 #include "board.hpp"
 #include <sstream>
 #include <stdexcept>
@@ -11,20 +9,21 @@ piece s2s(std::string square)
   if (square.length() != 2){
     return ENGINE_INVALID_SQUARE;
   }
-  
+
+
   std::map<char, int> files;
-  files = {{'a', 1}, 
+  files = {{'a', 1},
          {'b', 2},
          {'c', 3},
          {'d', 4},
          {'e', 5},
          {'f', 6},
          {'g', 7},
-         {'h', 8}}; 
-  
+         {'h', 8}};
+
   char file = square[0];
   int rank = square[1];
-  
+
   if (rank > 8)
   {
     return ENGINE_INVALID_SQUARE;
@@ -34,9 +33,9 @@ piece s2s(std::string square)
   {
     return ENGINE_INVALID_SQUARE;
   }
-  
+
   piece sq = (unsigned long long)1 << files[file] * rank;
-  
+
   return sq;
 }
 
@@ -100,8 +99,8 @@ const int Setpos(std::string fen){
 
   // half move and full move clock
   std::stringstream extra_bit_stream(extra_bits);
-  // we are using this var temp because it jst makes it easier to read for me 
-  int temp, itr{1};
+  // we are using this var temp because it jst makes it easier to read for me
+  int temp, itr{0};
   for (std::string info; std::getline(extra_bit_stream, info, ' ');)
   {
     if (itr > 5)
@@ -113,14 +112,13 @@ const int Setpos(std::string fen){
       temp = std::stoi(info);
     }
     catch (std::invalid_argument){
-      temp = -1; 
+      temp = -1;
       if (info != "w" && info != "b")
       {
         // castling rights
         if (itr == 2)
         {
-
-          for (int i = 0; i<= info.length();i++)
+          for (int i = 0; i<info.length();i++)
           {
             cpiece = info[i];
             switch (pieces[cpiece])
@@ -130,7 +128,7 @@ const int Setpos(std::string fen){
                 break;
               case 11:
                 whiteKingSideCastle = true;
-                break; 
+                break;
 
               case 4:
                 blackQueenSideCastle = true;
@@ -148,7 +146,7 @@ const int Setpos(std::string fen){
         }
 
         //enpassant square
-        else if (itr == 3)
+        else if (itr == 3 && info != "-")
         {
           enPassantSquare = s2s(info);
           if (enPassantSquare == ENGINE_INVALID_SQUARE)
@@ -189,7 +187,7 @@ const int Setpos(std::string fen){
   }
 
 
-  for (int i = 0; i<=pieces_pos.length(); i++){
+  for (int i = 0; i<pieces_pos.length(); i++){
     cpiece = pieces_pos[i];
     csquare+=1;
 
@@ -293,5 +291,6 @@ const int Setpos(std::string fen){
       return ENGINE_FEN_ERR;
     };
   }
+
   return ENGINE_OK;
 }
