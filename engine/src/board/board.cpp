@@ -1,4 +1,6 @@
 #include "board.hpp"
+#include <bitset>
+#include <iostream>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -293,4 +295,30 @@ const int Setpos(std::string fen){
   }
 
   return ENGINE_OK;
+}
+
+const int movement::king(piece square)
+{
+  switch (turn)
+  {
+    case WHITE:
+      if ((square & whiteKing) != 0)
+      {
+        int current_pos = __builtin_ctzll(whiteKing);
+      }
+      else
+      {
+        return ENGINE_INVALID_SQUARE;
+      }
+      break;
+    case BLACK:
+
+      break;
+
+    default:
+      return ENGINE_UNKWN_ERR;
+      break;
+  }
+  return ENGINE_OK;
+
 }

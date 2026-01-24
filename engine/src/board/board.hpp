@@ -1,16 +1,6 @@
 #ifndef BOARD_HPP
 #define BOARD_HPP
 #include <string>
-/*
-  Since we are using bitboards we can generate moves of pieces just by
-  adding or subtracting a number in the bitboard of the respected piece
-  this is defining those offsets.
-*/
-
-#define KNIGHTOFF
-#define PAWNOFF
-#define KINGOFF
-#define BISHOPOFF
 
 #define BLACK 0
 #define WHITE 1
@@ -20,6 +10,11 @@
 #define ENGINE_FEN_ERR 3
 #define ENGINE_UNKWN_ERR 4
 #define ENGINE_INVALID_SQUARE 5
+
+#define ENGINE_STALEMATE 6
+#define ENGINE_CHECKMATE 7
+#define ENGINE_INSUFFICIENT_MATERIAL 8
+#define ENGINE_50MOVERULE 9
 
 typedef unsigned long long piece;
 
@@ -53,8 +48,16 @@ inline bool blackQueenSideCastle;
 inline bool whiteKingSideCastle;
 inline bool whiteQueenSideCastle;
 
+struct movement
+{
+  const int king(piece square);
+  const int queen(piece square);
+  const int pawn(piece square);
+  const int bishop(piece square);
+  const int knight(piece square);
+  const int rook(piece square);
+};
 
-inline bool GameOver;
 /*
    from the supplied fen sets the whiteKing, blackKing, turn,etc to the required values
    returns ENGINE_OK on success and ENGINE_FEN_ERR || ENGINE_UNKWN_ERR on faliure
@@ -68,8 +71,10 @@ const int Setpos(std::string fen);
 */
 piece s2s(std::string square);
 
-void MoveGeneration();
-
+/*
+   either returns ENGINE_STALEMATE ENGINE_CHECKMATE ENGINE_INSUFFICIENT_MATERIAL ENGINE_50MOVERULE
+*/
+const int gameOver();
 
 
 #endif /* ifndef BOARD_HPP */
