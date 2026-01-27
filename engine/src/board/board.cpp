@@ -87,7 +87,6 @@ const int Setpos(std::string fen){
      by 63 instead.
   */
   int csquare{-1};
-  piece mask;
 
   /*
   Uppercase: white pieces
@@ -199,29 +198,24 @@ const int Setpos(std::string fen){
         switch (pieces[cpiece])
         {
           case 1:
-            mask = (unsigned long long)1 << csquare;
-            blackRook ^= mask;
+            set_bit(blackRook, csquare);
             break;
           case 2:
-            mask = (unsigned long long)1 << csquare;
-            blackKnight ^= mask;
+            set_bit(blackKnight, csquare);
             break;
           case 3:
-            mask = (unsigned long long)1 << csquare;
-            blackBishop ^= mask;
+            set_bit(blackBishop, csquare);
             break;
           case 4:
-            mask = (unsigned long long)1 << csquare;
-            blackQueen ^= mask;
+            set_bit(blackQueen, csquare);
             break;
           case 5:
-            mask = (unsigned long long)1 << csquare;
-            blackKing ^= mask;
+            set_bit(blackKing, csquare);
             break;
           case 6:
-            mask = (unsigned long long)1 << csquare;
-            blackPawn ^= mask;
+            set_bit(blackPawn, csquare);
             break;
+
           default:
             return ENGINE_UNKWN_ERR;
             break;
@@ -233,28 +227,22 @@ const int Setpos(std::string fen){
         switch (pieces[cpiece])
         {
           case 7:
-            mask = (unsigned long long)1 << csquare;
-            whiteRook ^= mask;
+            set_bit( whiteRook, csquare);
             break;
           case 8:
-            mask = (unsigned long long)1 << csquare;
-            whiteKnight ^= mask;
+            set_bit(whiteKnight, csquare);
             break;
           case 9:
-            mask = (unsigned long long)1 << csquare;
-            whiteBishop ^= mask;
+            set_bit(whiteBishop, csquare);
             break;
           case 10:
-            mask = (unsigned long long)1 << csquare ;
-            whiteQueen ^= mask;
+            set_bit( whiteQueen, csquare);
             break;
           case 11:
-            mask = (unsigned long long)1 << csquare;
-            whiteKing ^= mask;
+            set_bit(whiteKing, csquare);
             break;
           case 12:
-            mask = (unsigned long long)1 << csquare;
-            whitePawn ^= mask;
+            set_bit(whitePawn, csquare);
             break;
 
           default:
@@ -299,12 +287,16 @@ const int Setpos(std::string fen){
 
 const int movement::king(piece square)
 {
+  int MAX_MOVES = 8;
+  int current_pos = 0;
   switch (turn)
   {
     case WHITE:
       if ((square & whiteKing) != 0)
       {
-        int current_pos = __builtin_ctzll(whiteKing);
+        square = 0;
+        current_pos = __builtin_ctzll(whiteKing);
+        set_bit(square, current_pos);
       }
       else
       {

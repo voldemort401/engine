@@ -16,6 +16,9 @@
 #define ENGINE_INSUFFICIENT_MATERIAL 8
 #define ENGINE_50MOVERULE 9
 
+// Bit manupulation
+#define set_bit(bitboard, square) (bitboard ^= (1ULL<<square))
+
 typedef unsigned long long piece;
 
 inline piece whiteKing;
