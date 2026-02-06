@@ -29,7 +29,7 @@ ui.add_css(content= '''
 
            ''')
 
-def create_board(Bbishop, Bking,) -> None:
+def create_board() -> None:
     DARK  = "#0E1020"
     LIGHT = "#1A1F3C"
     squares = {
