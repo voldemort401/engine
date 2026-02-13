@@ -6,37 +6,28 @@
 #include <string>
 #include <map>
 
-piece s2s(std::string square)
+piece to_bitboard(std::string square)
 {
+  square = "e2";
   if (square.length() != 2){
     return ENGINE_INVALID_SQUARE;
   }
 
-
-  std::map<char, int> files;
-  files = {{'a', 1},
-         {'b', 2},
-         {'c', 3},
-         {'d', 4},
-         {'e', 5},
-         {'f', 6},
-         {'g', 7},
-         {'h', 8}};
-
-  char file = square[0];
-  int rank = square[1];
+  int file = square[0]; // int file will store the ascii value of the file 
+  int rank = square[1] - '0'; 
 
   if (rank > 8)
   {
     return ENGINE_INVALID_SQUARE;
   }
-
-  if (files[file] == 0)
+  // 0x61(97) and 0x68(104) are the ascii values of a and h respectively
+  if (file > 'h' || file < 'a')
   {
     return ENGINE_INVALID_SQUARE;
   }
-
-  piece sq = (unsigned long long)1 << files[file] * rank;
+  
+  file = file-0x60;
+  piece sq = (unsigned long long)1 << ((63-(8-file) - ((rank-1)*8))-1); 
 
   return sq;
 }
@@ -149,7 +140,7 @@ const int Setpos(std::string fen){
         //enpassant square
         else if (itr == 3 && info != "-")
         {
-          enPassantSquare = s2s(info);
+          enPassantSquare = to_bitboard(info);
           if (enPassantSquare == ENGINE_INVALID_SQUARE)
           {
             return ENGINE_FEN_ERR;
@@ -287,16 +278,13 @@ const int Setpos(std::string fen){
 
 const int movement::king(piece square)
 {
-  int MAX_MOVES = 8;
   int current_pos = 0;
   switch (turn)
   {
     case WHITE:
       if ((square & whiteKing) != 0)
       {
-        square = 0;
-        current_pos = __builtin_ctzll(whiteKing);
-        set_bit(square, current_pos);
+
       }
       else
       {
