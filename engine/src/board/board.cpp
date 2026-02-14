@@ -26,7 +26,6 @@ std::string to_standardNOT(piece __piece)
 
 piece to_bitboard(std::string square)
 {
-  square = "e2";
   if (square.length() != 2){
     return ENGINE_INVALID_SQUARE;
   }
@@ -46,9 +45,7 @@ piece to_bitboard(std::string square)
   
   file = file-0x60;
   piece sq = (unsigned long long)1 << (63-(8-file) - (rank-1)*8); 
-
-  to_standardNOT(sq);
-
+  
   return sq;
 }
 
@@ -296,29 +293,7 @@ const int Setpos(std::string fen){
   return ENGINE_OK;
 }
 
-const int movement::king(piece square)
+const int movement::rook(piece square)
 {
-  int current_pos = 0;
-  switch (turn)
-  {
-    case WHITE:
-      if ((square & whiteKing) != 0)
-      {
-
-      }
-      else
-      {
-        return ENGINE_INVALID_SQUARE;
-      }
-      break;
-    case BLACK:
-
-      break;
-
-    default:
-      return ENGINE_UNKWN_ERR;
-      break;
-  }
-  return ENGINE_OK;
-
+   
 }
