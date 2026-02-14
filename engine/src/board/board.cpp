@@ -1,10 +1,28 @@
 #include "board.hpp"
 #include <bitset>
+#include <cstdio>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
 #include <string>
 #include <map>
+
+std::string to_standardNOT(piece __piece)
+{
+  std::string notation = ""; 
+  int current_square = __builtin_ctzll(__piece); 
+
+  int rank = 7 - (current_square/8);
+  int file = (current_square + rank*8) - 56;
+
+  char _rank = rank + '1';
+  char _file = file + 'a'; 
+  
+  notation += _file;
+  notation += _rank;
+
+  return notation; 
+}
 
 piece to_bitboard(std::string square)
 {
@@ -27,7 +45,9 @@ piece to_bitboard(std::string square)
   }
   
   file = file-0x60;
-  piece sq = (unsigned long long)1 << ((63-(8-file) - ((rank-1)*8))-1); 
+  piece sq = (unsigned long long)1 << (63-(8-file) - (rank-1)*8); 
+
+  to_standardNOT(sq);
 
   return sq;
 }

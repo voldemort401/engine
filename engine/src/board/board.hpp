@@ -2,19 +2,20 @@
 #define BOARD_HPP
 #include <string>
 
-#define BLACK 0
-#define WHITE 1
+#define ENGINE_OK                     0xE1  
+#define ENGINE_FEN_ERR                0xE2  
+#define ENGINE_UNKWN_ERR              0xE3  
+#define ENGINE_INVALID_SQUARE         0xE4  
+#define ENGINE_STALEMATE              0xE5  
+#define ENGINE_CHECKMATE              0xE6  
+#define ENGINE_INSUFFICIENT_MATERIAL  0xE7  
+#define ENGINE_50MOVERULE             0xE8  
 
-// ERROR CODES
-#define ENGINE_OK 2
-#define ENGINE_FEN_ERR 3
-#define ENGINE_UNKWN_ERR 4
-#define ENGINE_INVALID_SQUARE 5
-
-#define ENGINE_STALEMATE 6
-#define ENGINE_CHECKMATE 7
-#define ENGINE_INSUFFICIENT_MATERIAL 8
-#define ENGINE_50MOVERULE 9
+#define RANKS                         0x8
+#define FILES                         0x8
+#define BLACK                         0x0   
+#define WHITE                         0x1   
+#define KING_MAX_MOVES                0x8   
 
 // Bit manupulation
 #define set_bit(bitboard, square) (bitboard ^= (1ULL<<square))
@@ -72,7 +73,16 @@ const int Setpos(std::string fen);
    returns the bitboard associated with the square on success and 
    returns either ENGINE_INVALID_SQUARE or ENGINE_UNKWN_ERR on faliure
 */
-piece s2s(std::string square);
+piece to_bitboard(std::string square);
+
+/* 
+ * take a 64 bit unsigned integer square as its input and returns the corresponding 
+ * notation for that square.
+ *
+ * NOTE: the argument "square" need to have only one bit set as 1 otherwise 
+ * it will return ENGINE_INVALID_SQUARE 
+ */ 
+std::string to_standardNOT(piece square);
 
 /*
    either returns ENGINE_STALEMATE ENGINE_CHECKMATE ENGINE_INSUFFICIENT_MATERIAL ENGINE_50MOVERULE
