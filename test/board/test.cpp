@@ -10,6 +10,7 @@ class test {
     void test_to_standardNOT();
     void test_Setpos();
     void test_gameOver();
+    void test_movement();
 };
 
 void test::test_to_bitboard(){
@@ -39,7 +40,7 @@ void test::test_to_bitboard(){
   square = "h8";
   result = to_bitboard(square);
   if (result != 128){
-    std::bitset<64> expected(64);
+    std::bitset<64> expected(128);
     std::bitset<64> got(result);
 
     std::cout << "\033[31m" << "❌ Failed at "<< square << '\n';
@@ -115,10 +116,14 @@ void test::test_to_standardNOT(){
   else{
     std::cout<<"\033[32m"<<"✅ Passed! when square="<<square<<'\n';
   }
-
-
 }
 
+void test::test_movement(){
+  piece square; 
+  movement movement;
+  // rook 
+  piece result = movement.rook(square);
+}
 
 int main(){
   test test; 
