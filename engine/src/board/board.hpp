@@ -97,5 +97,6 @@ std::string to_standardNOT(piece square);
 */
 const int gameOver();
 
+bool in_check();
 
 #endif /* ifndef BOARD_HPP */

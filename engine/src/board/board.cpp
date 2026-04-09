@@ -55,7 +55,8 @@ piece to_bitboard(std::string square, bool decimal)
   return ENGINE_UNKWN_ERR;  
 }
 
-const int Setpos(std::string fen){
+const int Setpos(std::string fen)
+{
   previousMove = 0;
   if (fen.length() == 0){
     return ENGINE_FEN_ERR;
@@ -300,8 +301,47 @@ Lowercase: black pieces
   return ENGINE_OK;
 }
 
+bool in_check()
+{
+  piece attacked_squares;
+  if (turn == BLACK)
+  {
+    attacked_squares = whitePawn | whiteRook | whiteBishop | whiteKing | whiteQueen | whiteKnight; 
+    if ((blackKing & attacked_squares) > 1)
+    {
+      return true;
+    }
+    else
+    {
+      return false;
+    }
+  }
+
+  else if (turn == WHITE)
+  {
+    attacked_squares = blackPawn | blackRook | blackBishop | blackKing | blackQueen | blackKnight; 
+    if ((whiteKing & attacked_squares) > 1)
+    {
+      return true;
+    }
+    else
+    {
+      return false;
+    }
+  }
+
+  else 
+  {
+    return ENGINE_UNKWN_ERR;
+  }
+  return ENGINE_UNKWN_ERR;
+}
+
+
 unsigned long long movement::pawn(piece square)
 {
+  // I feel like this function is way too large and complex for a simple piece 
+  // like the pawn so i will try to refactor this later in the future
   piece illegal_squares, attack_squares; 
   int rank = get_rank(square);
   int starting_rnk, dposition{__builtin_ctzll(square)};
