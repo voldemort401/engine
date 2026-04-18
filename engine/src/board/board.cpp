@@ -1,15 +1,13 @@
 #include "board.hpp"
-#include <iostream>
-#include <bitset>
 #include <sstream>
 #include <stdexcept>
 #include <string>
 #include <map>
 
-std::string to_standardNOT(piece __piece)
+std::string to_standardNOT(U64 square)
 {
   std::string notation = ""; 
-  int current_square = __builtin_ctzll(__piece); 
+  int current_square = __builtin_ctzll(square); 
 
   int rank = 7 - (current_square/8);
   int file = (current_square + rank*8) - 56;
@@ -23,7 +21,7 @@ std::string to_standardNOT(piece __piece)
   return notation; 
 }
 
-piece to_bitboard(std::string square, bool decimal)
+U64 to_bitboard(std::string square, bool decimal)
 {
   if (square.length() != 2){
     return ENGINE_INVALID_SQUARE;
@@ -46,7 +44,7 @@ piece to_bitboard(std::string square, bool decimal)
   int _square = (63-(8-file) - (rank-1)*8);
   if (decimal == false)
   {
-    piece sq = (unsigned long long)1 << _square; 
+    U64 sq = (U64)1 << _square; 
     return sq;
   }
   else{
@@ -79,14 +77,14 @@ const int Setpos(std::string fen)
      */
 
   if (fen.find(" w") > 90){
-    turn = BLACK;
+    extra_vars |= (BLACK << 30);
     pieces_pos = fen.substr(0, fen.find(" b"));
     extra_bits = fen.substr(fen.find(" b"), fen.length());
   }
 
   else if (fen.find(" b") > 90)
   {
-    turn = WHITE;
+    extra_vars |=(WHITE << 30);
     pieces_pos = fen.substr(0, fen.find(" w"));
     extra_bits = fen.substr(fen.find(" w"), fen.length());
   }
@@ -94,7 +92,7 @@ const int Setpos(std::string fen)
   else{
     return ENGINE_FEN_ERR;
   }
-  std::string cpiece;
+  std::string cpieces;
   /*
      we are starting the value of csquare with -1 cause when we first add the csquare by 1
      we want to start from 0.
@@ -120,15 +118,17 @@ Lowercase: black pieces
   int temp, itr{0};
   for (std::string info; std::getline(extra_bit_stream, info, ' ');)
   {
-    if (itr > 5)
+    if (itr > 4)
     {
       return ENGINE_FEN_ERR;
     }
     // temp throws a std::invalid_argument if the provided string cant be converted to a number
-    try{
+    try
+    {
       temp = std::stoi(info);
     }
-    catch (std::invalid_argument){
+    catch (std::invalid_argument)
+    {
       temp = -1;
       if (info != "w" && info != "b")
       {
@@ -137,22 +137,22 @@ Lowercase: black pieces
         {
           for (int i = 0; i<info.length();i++)
           {
-            cpiece = info[i];
-            switch (pieces[cpiece])
+            cpieces = info[i];
+            switch (pieces[cpieces])
             {
               case 5:
-                blackKingSideCastle = true;
+                extra_vars |= (1UL << 29);
                 break;
               case 11:
-                whiteKingSideCastle = true;
+                extra_vars |= (1UL << 27);
                 break;
 
               case 4:
-                blackQueenSideCastle = true;
+                extra_vars |= (1UL << 28);
                 break;
 
               case 10:
-                whiteQueenSideCastle = true;
+                extra_vars |= (1UL << 26);
                 break;
 
               default:
@@ -162,14 +162,11 @@ Lowercase: black pieces
           }
         }
 
-        //enpassant square
+        // enpassant
         else if (itr == 3 && info != "-")
         {
-          enPassantSquare = to_bitboard(info);
-          if (enPassantSquare == ENGINE_INVALID_SQUARE)
-          {
-            return ENGINE_FEN_ERR;
-          }
+          if (info[0] - '`' > 8 || info[0]-'`' < 1){return ENGINE_FEN_ERR;}
+          extra_vars |= (info[0] - '`') << 22;
         };
 
       }
@@ -187,7 +184,8 @@ Lowercase: black pieces
     }
     else if (itr == 4 && temp != -1)
     {
-      fullmoveClock = temp;
+      // full move clock
+      extra_vars |= temp << 8;
     };
 
 
@@ -197,7 +195,8 @@ Lowercase: black pieces
     }
     else if (itr == 5 && temp != -1)
     {
-      halfmoveClock = temp;
+      // half move clock
+      extra_vars |= temp;
     };
 
     itr+=1;
@@ -205,13 +204,13 @@ Lowercase: black pieces
 
 
   for (int i = 0; i<pieces_pos.length(); i++){
-    cpiece = pieces_pos[i];
+    cpieces = pieces_pos[i];
     csquare+=1;
 
-    if (pieces[cpiece] != 0 ){
-      if (pieces[cpiece] <= 6)
+    if (pieces[cpieces] != 0 ){
+      if (pieces[cpieces] <= 6)
       {
-        switch (pieces[cpiece])
+        switch (pieces[cpieces])
         {
           case 1:
             set_bit(blackRook, csquare);
@@ -240,7 +239,7 @@ Lowercase: black pieces
 
       else
       {
-        switch (pieces[cpiece])
+        switch (pieces[cpieces])
         {
           case 7:
             set_bit( whiteRook, csquare);
@@ -269,7 +268,7 @@ Lowercase: black pieces
       }
 
     }
-    else if (cpiece == "/")
+    else if (cpieces == "/")
     {
       /*
          at the start of every iteration of this loop
@@ -303,10 +302,10 @@ Lowercase: black pieces
 
 bool in_check()
 {
-  piece attacked_squares;
-  if (turn == BLACK)
+  U64 attacked_squares;
+  if (read_bit(30, extra_vars) == BLACK)
   {
-    attacked_squares = whitePawn | whiteRook | whiteBishop | whiteKing | whiteQueen | whiteKnight; 
+    attacked_squares = whitePawn | whiteRook | whiteBishop | whiteKing | whiteQueen | whiteKnight;
     if ((blackKing & attacked_squares) > 1)
     {
       return true;
@@ -317,7 +316,7 @@ bool in_check()
     }
   }
 
-  else if (turn == WHITE)
+  else if (read_bit(30, extra_vars) == WHITE)
   {
     attacked_squares = blackPawn | blackRook | blackBishop | blackKing | blackQueen | blackKnight; 
     if ((whiteKing & attacked_squares) > 1)
@@ -338,188 +337,11 @@ bool in_check()
 }
 
 
-unsigned long long movement::pawn(piece square)
-{
-  // I feel like this function is way too large and complex for a simple piece 
-  // like the pawn so i will try to refactor this later in the future
-  piece illegal_squares, attack_squares; 
-  int rank = get_rank(square);
-  int starting_rnk, dposition{__builtin_ctzll(square)};
-  std::bitset<64> _moves{0};
-
-  if ((square & whitePawn) == 0 && (square & blackPawn) == 0)
-  {
-    return ENGINE_INVALID_PIECE;  
-  }
-
-  // BLACK PAWN
-  if ( (square & whitePawn) == 0){
-    attack_squares = whitePawn | whiteRook | whiteBishop | whiteKing | whiteQueen | whiteKnight; 
-    illegal_squares = blackPawn | blackRook | blackBishop | blackKing | blackQueen | blackKnight; 
-
-    starting_rnk = 7;
-    /* --- VERTICAL MOVEMENT --- */
-    if (rank == starting_rnk) 
-    {
-      for (int i = 1; i <=2; i++)
-      {
-        _moves.set(dposition+(i*8),1);
-        /*converting bitset to ullong because can't really do bitwise operations with a type bitset and a type ullong*/
-        if ((_moves.to_ullong() & illegal_squares) != 0 || (_moves.to_ullong() & attack_squares) != 0)
-        {
-          _moves.set(dposition+(i*8), 0);
-          break; 
-        }
-      }
-    }
-    else 
-    {
-      _moves.set(dposition+8, 1);
-      if ((_moves.to_ullong() & illegal_squares) != 0 || (_moves.to_ullong() & attack_squares) != 0)
-      {
-        _moves.set(dposition+8, 0);
-      }
-    }
-
-
-    /*--- DIAGONAL MOVEMENTS ---*/
-    /*NW OFFSET: +7
-      NE OFFSET: +9*/ 
-
-    if (dposition+7 <= 63 && (1ULL << (dposition+7) & attack_squares) != 0 && dposition % 8 != 0)
-    {
-      _moves.set(dposition+7,1);
-    }
-
-    if (dposition+9 <= 63 && (1ULL << (dposition+9) & attack_squares) != 0 && dposition % 8 != 7)
-    {
-      _moves.set(dposition+9,1);
-    }
-
-    /* --- ENPASSANT --- */ 
-    if (enPassantSquare != 0 && enPassantSquare != ENGINE_INVALID_SQUARE)
-    {
-      if (dposition+9 >= 0 && enPassantSquare == (1ULL << (dposition+9)) && dposition%8 != 0)
-      {
-        _moves.set(__builtin_ctzll(enPassantSquare), 1);
-      }
-
-      if (dposition+7 >=0 && enPassantSquare == (1ULL<<(dposition+7)) && dposition%8 != 7)
-      {
-        _moves.set(__builtin_ctzll(enPassantSquare), 1);
-      }
-    }
-
-    else if (previousMove != 0)
-    {
-      if (rank == 4 && _moves.test(dposition+7) != 1 && dposition % 8 != 7)
-      {
-        if ( (1ULL << (dposition-1) & whitePawn) != 0)
-        {
-          if ((previousMove & whitePawn) != 0 && read_bit( ((dposition-1) + (2*8)), previousMove) == 1)
-          {
-            _moves.set(dposition+7, 1);
-          }
-        } 
-      } 
-
-      if (rank == 4 && _moves.test(dposition+9) != 1 && dposition % 8 != 0)
-      {
-        if ( (1ULL << (dposition+1) & whitePawn) != 0)
-        {
-          if ((previousMove & whitePawn) != 0 && read_bit( ((dposition+1) + (2*8)), previousMove) == 1)
-          {
-            _moves.set(dposition+9, 1);
-          }
-        } 
-      }
-    }
-  }
-
-  // WHITE PAWN 
-  else
-  {
-    illegal_squares = whitePawn | whiteRook | whiteBishop | whiteKing | whiteQueen | whiteKnight; 
-    attack_squares  = blackPawn | blackRook | blackBishop | blackKing | blackQueen | blackKnight; 
-
-    starting_rnk = 2;
-    /* --- VERTICAL MOVEMENT --- */
-    if (rank == starting_rnk) 
-    {
-      for (int i = 1; i <=2; i++)
-      {
-        _moves.set(dposition-(i*8),1);
-        /*converting bitset to ullong because can't really do bitwise operations with a type bitset and a type ullong*/
-        if ((_moves.to_ullong() & illegal_squares) != 0 || (_moves.to_ullong() & attack_squares) != 0)
-        {
-          _moves.set(dposition-(i*8), 0);
-          break; 
-        }
-      }
-    }
-    else 
-    {
-      _moves.set(dposition-8, 1);
-      if ((_moves.to_ullong() & illegal_squares) != 0 || (_moves.to_ullong() & attack_squares) != 0)
-      {
-        _moves.set(dposition-8, 0);
-      }
-    }
-
-
-    /*--- DIAGONAL MOVEMENTS ---*/
-    /*NW OFFSET: -7
-      NE OFFSET: -9*/ 
-
-    if (dposition-7 >= 0 && (1ULL << (dposition-7) & attack_squares) != 0 && dposition % 8 != 7)
-    {
-      _moves.set(dposition-7,1);
-    }
-
-    if (dposition-9 >= 0 && (1ULL << (dposition-9) & attack_squares) != 0 && dposition % 8 != 0)
-    {
-      _moves.set(dposition-9,1);
-    }
-
-    /* --- ENPASSANT --- */ 
-    if (enPassantSquare != 0 && enPassantSquare != ENGINE_INVALID_SQUARE)
-    {
-      if (dposition-9 >= 0 && enPassantSquare == (1ULL << (dposition-9)) && dposition%8 != 0)
-      {
-        _moves.set(__builtin_ctzll(enPassantSquare), 1);
-      }
-
-      if (dposition-7 >=0 && enPassantSquare == (1ULL<<(dposition-7)) && dposition%8 != 7)
-      {
-        _moves.set(__builtin_ctzll(enPassantSquare), 1);
-      }
-    }
-
-    else if (previousMove != 0)
-    {
-      if (rank == 5 && _moves.test(dposition-7) != 1 && dposition % 8 != 7)
-      {
-        if ( (1ULL << (dposition+1) & blackPawn) != 0)
-        {
-          if ((previousMove & blackPawn) != 0 && read_bit( ((dposition+1) - (2*8)), previousMove) == 1)
-          {
-            _moves.set(dposition-7, 1);
-          }
-        } 
-      } 
-
-      if (rank == 5 && _moves.test(dposition-9) != 1 && dposition % 8 != 0)
-      {
-        if ( (1ULL << (dposition-1) & blackPawn) != 0)
-        {
-          if ((previousMove & blackPawn) != 0 && read_bit( ((dposition-1) - (2*8)), previousMove) == 1)
-          {
-            _moves.set(dposition-9, 1);
-          }
-        } 
-      }
-    }
-  }
-
-  return _moves.to_ullong();
-}
+// movement of pieces
+//U64 movement::pawn(U64 square, int color)
+//{
+//  if ( (square & whitePawn) < 1 || (square & blackPawn) < 1)
+//  {
+//    return ENGINE_INVALID_SQUARE;
+//  }
+//}
