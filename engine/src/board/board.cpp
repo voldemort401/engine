@@ -6,58 +6,58 @@
 
 std::string to_standardNOT(U64 square)
 {
-  std::string notation = ""; 
-  int current_square = __builtin_ctzll(square); 
+  std::string notation = "";
+  int current_square = __builtin_ctzll(square);
 
   int rank = 7 - (current_square/8);
   int file = (current_square + rank*8) - 56;
 
   char _rank = rank + '1';
-  char _file = file + 'a'; 
+  char _file = file + 'a';
 
   notation += _file;
   notation += _rank;
 
-  return notation; 
+  return notation;
 }
 
 U64 to_bitboard(std::string square, bool decimal)
 {
   if (square.length() != 2){
-    return ENGINE_INVALID_SQUARE;
+    return errors::ENGINE_INVALID_SQUARE;
   }
 
-  int file = square[0]; // int file will store the ascii value of the file 
-  int rank = square[1] - '0'; 
+  int file = square[0]; // int file will store the ascii value of the file
+  int rank = square[1] - '0';
 
   if (rank > 8)
   {
-    return ENGINE_INVALID_SQUARE;
+    return errors::ENGINE_INVALID_SQUARE;
   }
   // 0x61(97) and 0x68(104) are the ascii values of a and h respectively
   if (file > 'h' || file < 'a')
   {
-    return ENGINE_INVALID_SQUARE;
+    return errors::ENGINE_INVALID_SQUARE;
   }
 
   file = file-'`';
   int _square = (63-(8-file) - (rank-1)*8);
   if (decimal == false)
   {
-    U64 sq = (U64)1 << _square; 
+    U64 sq = (U64)1 << _square;
     return sq;
   }
   else{
     return _square;
   }
-  return ENGINE_UNKWN_ERR;  
+  return errors::ENGINE_UNKWN_ERR;
 }
 
 const int Setpos(std::string fen)
 {
   previousMove = 0;
   if (fen.length() == 0){
-    return ENGINE_FEN_ERR;
+    return errors::ENGINE_FEN_ERR;
   }
 
   /*
@@ -77,20 +77,20 @@ const int Setpos(std::string fen)
      */
 
   if (fen.find(" w") > 90){
-    extra_vars |= (BLACK << 30);
+    extra_vars |= (constants::BLACK << 30);
     pieces_pos = fen.substr(0, fen.find(" b"));
     extra_bits = fen.substr(fen.find(" b"), fen.length());
   }
 
   else if (fen.find(" b") > 90)
   {
-    extra_vars |=(WHITE << 30);
+    extra_vars |=(constants::WHITE << 30);
     pieces_pos = fen.substr(0, fen.find(" w"));
     extra_bits = fen.substr(fen.find(" w"), fen.length());
   }
 
   else{
-    return ENGINE_FEN_ERR;
+    return errors::ENGINE_FEN_ERR;
   }
   std::string cpieces;
   /*
@@ -120,7 +120,7 @@ Lowercase: black pieces
   {
     if (itr > 4)
     {
-      return ENGINE_FEN_ERR;
+      return errors::ENGINE_FEN_ERR;
     }
     // temp throws a std::invalid_argument if the provided string cant be converted to a number
     try
@@ -156,7 +156,7 @@ Lowercase: black pieces
                 break;
 
               default:
-                return ENGINE_FEN_ERR;
+                return errors::ENGINE_FEN_ERR;
                 break;
             }
           }
@@ -165,7 +165,7 @@ Lowercase: black pieces
         // enpassant
         else if (itr == 3 && info != "-")
         {
-          if (info[0] - '`' > 8 || info[0]-'`' < 1){return ENGINE_FEN_ERR;}
+          if (info[0] - '`' > 8 || info[0]-'`' < 1){return errors::ENGINE_FEN_ERR;}
           extra_vars |= (info[0] - '`') << 22;
         };
 
@@ -180,7 +180,7 @@ Lowercase: black pieces
        */
     if (itr == 4 && temp == -1)
     {
-      return ENGINE_FEN_ERR;
+      return errors::ENGINE_FEN_ERR;
     }
     else if (itr == 4 && temp != -1)
     {
@@ -191,7 +191,7 @@ Lowercase: black pieces
 
     if (itr == 5 && temp == -1)
     {
-      return ENGINE_FEN_ERR;
+      return errors::ENGINE_FEN_ERR;
     }
     else if (itr == 5 && temp != -1)
     {
@@ -232,7 +232,7 @@ Lowercase: black pieces
             break;
 
           default:
-            return ENGINE_UNKWN_ERR;
+            return errors::ENGINE_UNKWN_ERR;
             break;
         }
       }
@@ -261,7 +261,7 @@ Lowercase: black pieces
             break;
 
           default:
-            return ENGINE_UNKWN_ERR;
+            return errors::ENGINE_UNKWN_ERR;
             break;
         }
 
@@ -293,17 +293,17 @@ Lowercase: black pieces
 
     else
     {
-      return ENGINE_FEN_ERR;
+      return errors::ENGINE_FEN_ERR;
     };
   }
 
-  return ENGINE_OK;
+  return errors::ENGINE_OK;
 }
 
 bool in_check()
 {
   U64 attacked_squares;
-  if (read_bit(30, extra_vars) == BLACK)
+  if (read_bit(30, extra_vars) == constants::BLACK)
   {
     attacked_squares = whitePawn | whiteRook | whiteBishop | whiteKing | whiteQueen | whiteKnight;
     if ((blackKing & attacked_squares) > 1)
@@ -316,9 +316,9 @@ bool in_check()
     }
   }
 
-  else if (read_bit(30, extra_vars) == WHITE)
+  else if (read_bit(30, extra_vars) == constants::WHITE)
   {
-    attacked_squares = blackPawn | blackRook | blackBishop | blackKing | blackQueen | blackKnight; 
+    attacked_squares = blackPawn | blackRook | blackBishop | blackKing | blackQueen | blackKnight;
     if ((whiteKing & attacked_squares) > 1)
     {
       return true;
@@ -329,19 +329,19 @@ bool in_check()
     }
   }
 
-  else 
+  else
   {
-    return ENGINE_UNKWN_ERR;
+    return errors::ENGINE_UNKWN_ERR;
   }
-  return ENGINE_UNKWN_ERR;
+  return errors::ENGINE_UNKWN_ERR;
 }
 
 
 // movement of pieces
-//U64 movement::pawn(U64 square, int color)
-//{
-//  if ( (square & whitePawn) < 1 || (square & blackPawn) < 1)
-//  {
-//    return ENGINE_INVALID_SQUARE;
-//  }
-//}
+U64 movement::pawn(U64 square, int color)
+{
+  if ( (square & whitePawn) < 1 || (square & blackPawn) < 1)
+  {
+    return errors::ENGINE_INVALID_SQUARE;
+  }
+}
